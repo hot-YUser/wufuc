@@ -8,8 +8,15 @@
 #include "targetver.h"
 
 // Windows Header Files:
-#include <phnt_windows.h>
-#include <phnt.h>
+#define WIN32_LEAN_AND_MEAN
+#define WIN32_NO_STATUS
+#include <windows.h>
+#undef WIN32_NO_STATUS
+#include <ntstatus.h>
+#include <winternl.h>
+
+NTSYSCALLAPI NTSTATUS NTAPI NtSuspendProcess(_In_ HANDLE ProcessHandle);
+NTSYSCALLAPI NTSTATUS NTAPI NtResumeProcess(_In_ HANDLE ProcessHandle);
 
 // TODO: reference additional headers your program requires here
 #include <stdlib.h>

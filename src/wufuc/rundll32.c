@@ -14,7 +14,7 @@ static LPVOID ResolveAndTranslatePtr(LPVOID lpSrcImageBase, size_t Offset, LPVOI
         LPVOID p = OffsetToPointer(lpSrcImageBase, Offset);
 
 #ifdef _WIN64
-        return OffsetToPointer(lpDstImageBase, PointerToOffset(lpSrcImageBase, OffsetToPointer(p, sizeof(uint32_t) + *(uint32_t *)p)));
+        return OffsetToPointer(lpDstImageBase, PointerToOffset(lpSrcImageBase, OffsetToPointer(p, sizeof(int32_t) + *(int32_t *)p)));
 #else
         return *(LPVOID *)p;
 #endif
@@ -46,6 +46,7 @@ static VOID CALLBACK ServiceNotifyCallback(PVOID pParameter)
 
         switch ( pNotifyBuffer->dwNotificationStatus ) {
         case ERROR_SUCCESS:
+                if ( !dwProcessId ) break;
                 if ( !RegGetValueAlloc(&lpwstrFilename,
                         HKEY_LOCAL_MACHINE,
                         L"SYSTEM\\CurrentControlSet\\services\\wuauserv\\Parameters",

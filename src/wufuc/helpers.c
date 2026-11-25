@@ -9,15 +9,17 @@ HANDLE CreateEventWithStringSecurityDescriptor(
         LPCWSTR lpName)
 {
         SECURITY_ATTRIBUTES sa = { sizeof sa };
+        HANDLE result = NULL;
 
         if ( ConvertStringSecurityDescriptorToSecurityDescriptorW(
                 lpStringSecurityDescriptor,
                 SDDL_REVISION_1,
                 &sa.lpSecurityDescriptor,
                 NULL) ) {
-                return CreateEventW(&sa, bManualReset, bInitialState, lpName);
+                result = CreateEventW(&sa, bManualReset, bInitialState, lpName);
+                LocalFree(sa.lpSecurityDescriptor);
         }
-        return NULL;
+        return result;
 }
 
 HANDLE CreateNewMutex(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCWSTR lpName)

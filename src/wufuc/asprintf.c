@@ -39,7 +39,7 @@ int vasprintf_l(char **strp, char const *const fmt, _locale_t locale, va_list ap
         int ret;
 
         va_copy(copy, ap);
-        result = _vscprintf(fmt, copy);
+        result = _vscprintf_l(fmt, locale, copy);
         va_end(copy);
 
         if ( result == -1 )

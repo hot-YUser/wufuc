@@ -67,6 +67,8 @@ bool patterntransform(const char *patterntext,
 
         size = len + 1;
         formattext = malloc(size);
+        if ( !formattext )
+                return false;
         formathexpattern(patterntext, formattext, size);
 
         for ( size_t i = 0, j = 0, k = 0; i < len && k <= patternsize; i++ ) {
@@ -115,7 +117,11 @@ size_t patternfind(uint8_t *data, size_t datasize, const char *pattern)
         size_t result = -1;
 
         searchpatternsize = formathexpattern(pattern, NULL, 0) / 2;
+        if ( !searchpatternsize )
+                return result;
         searchpattern = calloc(searchpatternsize, sizeof *searchpattern);
+        if ( !searchpattern )
+                return result;
 
         if ( patterntransform(pattern, searchpattern, searchpatternsize) )
                 result = patternfind_pbyte(data, datasize, searchpattern, searchpatternsize);
@@ -166,7 +172,11 @@ void patternwrite(uint8_t *data,
         DWORD fOldProtect;
 
         writepatternsize = formathexpattern(pattern, NULL, 0) / 2;
+        if ( !writepatternsize )
+                return;
         writepattern = calloc(writepatternsize, sizeof *writepattern);
+        if ( !writepattern )
+                return;
 
         if ( patterntransform(pattern, writepattern, writepatternsize) ) {
                 VirtualProtect(data, writepatternsize, PAGE_EXECUTE_READWRITE, &fOldProtect);
@@ -191,7 +201,7 @@ bool patternsnr(uint8_t *data,
         found = patternfind(data, datasize, searchpattern);
         if ( found == -1 )
                 return false;
-        patternwrite(data + found, found - datasize, replacepattern);
+        patternwrite(data + found, datasize - found, replacepattern);
         return true;
 }
 

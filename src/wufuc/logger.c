@@ -61,14 +61,15 @@ void log_debug_(const wchar_t *const format, ...)
 {
         va_list ap;
         int count;
-        wchar_t *buffer;
+        wchar_t *buffer = NULL;
 
         va_start(ap, format);
         count = vaswprintf(&buffer, format, ap);
         va_end(ap);
-        if ( count != -1 )
+        if ( count != -1 ) {
                 OutputDebugStringW(buffer);
-        free(buffer);
+                free(buffer);
+        }
 }
 
 void log_trace_(const wchar_t *const format, ...)
@@ -93,7 +94,12 @@ void log_trace_(const wchar_t *const format, ...)
         va_end(ap);
         if ( count == -1 ) return;
 
-        count = aswprintf(&buf2, L"%ls %ls [%ls:%lu] %ls", datebuf, timebuf, s_pszExeFileName, GetCurrentProcessId(), buf1);
+        count = aswprintf(&buf2, L"%ls %ls [%ls:%lu] %ls",
+                datebuf,
+                timebuf,
+                s_pszExeFileName ? s_pszExeFileName : L"(unknown)",
+                GetCurrentProcessId(),
+                buf1);
         free(buf1);
         if ( count == -1 ) return;
 

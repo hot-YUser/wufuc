@@ -8,7 +8,7 @@ HMODULE Toolhelp32GetModuleHandle(DWORD th32ProcessID, LPCWSTR lpModuleName)
         HMODULE result = NULL;
 
         Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, th32ProcessID);
-        if ( !Snapshot ) return NULL;
+        if ( Snapshot == INVALID_HANDLE_VALUE ) return NULL;
 
         if ( Module32FirstW(Snapshot, &me) ) {
                 do {
