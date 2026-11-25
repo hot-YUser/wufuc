@@ -13,14 +13,18 @@
 
 These must be used from an elevated command line prompt.
 
+## Compatibility with BypassESU, UpdatePack7R2, and WuaCpuFix
+
+- **BypassESU (WU ESU Patcher / `wuaueng3.dll`)**: `wufuc` v1.0.1+ reads `wuauserv`'s `ServiceDll` dynamically on each service start and can coexist with `BypassESU`'s `wuaueng3.dll` (when `wuaueng3.dll` is built from the original `wuaueng.dll`). **Do not** merge `Restore_wuauserv.reg` if you want to keep `BypassESU`'s WU ESU Patcher active.
+- **simplix UpdatePack7R2 (`wuaueng2.dll`)**: UpdatePack7R2 already includes its own CPU check patch via `wuaueng2.dll`. Choose either UpdatePack7R2's built-in patch or `wufuc` — do not stack both. (If you also use `BypassESU` together with `UpdatePack7R2`, `BypassESU` automatically uses `wuaueng2.dll` as its base to create `wuaueng3.dll`, so `wufuc` is not needed.)
+- **WuaCpuFix (`WuaCpuFix64.dll`)**: Incompatible with `wufuc`. Uninstall `WuaCpuFix` first, or merge `Restore_wuauserv.reg` and restart your PC before using `wufuc`.
+
 ## How to restore Windows Update to its default configuration
 
-If you have used another third-party solution for the CPU fix (such as UpdatePack7R2 or WuaCpuFix) either knowingly or unknowingly, wufuc may not function correctly.
+If you have previously used another third-party solution that replaced `wuauserv`'s `ServiceDll` (such as `UpdatePack7R2` or `WuaCpuFix`) and want to revert back to the default `wuaueng.dll`:
 
-You have two ways to work around this limitation, either:
-
-- You can remove the other third-party solution yourself.
-- Alternatively, go to the directory that you installed wufuc to, and merge the `Restore_wuauserv.reg` file with your registry by double-clicking it, and then restart your PC.
+- Remove the other third-party solution yourself, or
+- Merge the included `Restore_wuauserv.reg` file with your registry by double-clicking it, and then restart your PC. *(Note: do not use `Restore_wuauserv.reg` if you rely on `BypassESU`'s WU ESU Patcher.)*
 
 ## How to manually remove wufuc v0.8.0.143 when it is impossible to uninstall it normally
 

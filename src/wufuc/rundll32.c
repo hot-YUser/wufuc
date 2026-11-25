@@ -6,6 +6,13 @@
 #include "helpers.h"
 #include "versioninfo.h"
 
+typedef struct _PATCH_PATTERN
+{
+        const char *pattern;
+        size_t off1;
+        size_t off2;
+} PATCH_PATTERN;
+
 static BOOL s_bWindowsSevenSP1;
 static BOOL s_bWindowsEightPointOne;
 
@@ -20,12 +27,76 @@ static LPVOID ResolveAndTranslatePtr(LPVOID lpSrcImageBase, size_t Offset, LPVOI
 #endif
 }
 
+static BOOL HasSiblingFile(LPCWSTR lpFilePath, LPCWSTR lpSiblingName)
+{
+        LPCWSTR lpFileName = PathFindFileNameW(lpFilePath);
+        size_t dirLen = (size_t)(lpFileName - lpFilePath);
+        LPWSTR lpSiblingPath = NULL;
+        BOOL exists = FALSE;
+
+        if ( aswprintf(&lpSiblingPath, L"%.*ls%ls", (int)dirLen, lpFilePath, lpSiblingName) != -1 ) {
+                exists = PathFileExistsW(lpSiblingPath);
+                free(lpSiblingPath);
+        }
+        return exists;
+}
+
+static BOOL ReadModuleImage(HANDLE hProcess, LPVOID lpBaseOfDll, SIZE_T SizeOfImage, LPVOID *lplpBuffer)
+{
+        LPVOID lpBuffer = calloc(1, SizeOfImage);
+        SIZE_T NumberOfBytesRead = 0;
+
+        if ( !lpBuffer )
+                return FALSE;
+
+        if ( ReadProcessMemory(hProcess, lpBaseOfDll, lpBuffer, SizeOfImage, &NumberOfBytesRead)
+                && NumberOfBytesRead > 0 ) {
+                *lplpBuffer = lpBuffer;
+                return TRUE;
+        }
+
+        // Fallback: read readable committed regions page-by-page so guard or
+        // unmapped pages inside SizeOfImage do not abort the entire scan.
+        SIZE_T totalRead = 0;
+        SIZE_T pos = 0;
+        while ( pos < SizeOfImage ) {
+                MEMORY_BASIC_INFORMATION mbi;
+                LPVOID lpAddr = OffsetToPointer(lpBaseOfDll, pos);
+                if ( !VirtualQueryEx(hProcess, lpAddr, &mbi, sizeof mbi) )
+                        break;
+
+                SIZE_T regionEnd = PointerToOffset(lpBaseOfDll, OffsetToPointer(mbi.BaseAddress, mbi.RegionSize));
+                if ( regionEnd > SizeOfImage )
+                        regionEnd = SizeOfImage;
+                if ( regionEnd <= pos )
+                        break;
+
+                SIZE_T chunkSize = regionEnd - pos;
+                if ( mbi.State == MEM_COMMIT
+                        && !(mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD)) ) {
+                        SIZE_T chunkRead = 0;
+                        if ( ReadProcessMemory(hProcess, lpAddr, OffsetToPointer(lpBuffer, pos), chunkSize, &chunkRead) )
+                                totalRead += chunkRead;
+                }
+                pos = regionEnd;
+        }
+
+        if ( totalRead > 0 ) {
+                *lplpBuffer = lpBuffer;
+                return TRUE;
+        }
+        free(lpBuffer);
+        return FALSE;
+}
+
 static VOID CALLBACK ServiceNotifyCallback(PVOID pParameter)
 {
         PSERVICE_NOTIFY pNotifyBuffer = pParameter;
         DWORD dwProcessId = pNotifyBuffer->ServiceStatus.dwProcessId;
         const DWORD dwDesiredAccess = PROCESS_SUSPEND_RESUME | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE;
         LPWSTR fname;
+        BOOL bIsBypassEsu = FALSE;
+        BOOL bHasUpdatePack = FALSE;
         HANDLE hProcess;
         NTSTATUS Status;
         LPWSTR lpwstrFilename;
@@ -33,16 +104,31 @@ static VOID CALLBACK ServiceNotifyCallback(PVOID pParameter)
         PLANGANDCODEPAGE lpTranslate;
         LPWSTR lpInternalName;
         VS_FIXEDFILEINFO *lpffi;
-        const char *pattern;
-        size_t off1;
-        size_t off2;
+        const PATCH_PATTERN *patterns = NULL;
+        size_t patternCount = 0;
+        size_t matchedIndex = (size_t)-1;
         HMODULE hModule;
         MODULEINFO modinfo;
         LPVOID lpBuffer;
-        SIZE_T NumberOfBytesRead;
-        size_t offset;
+        size_t offset = (size_t)-1;
         LPVOID lpAddress;
         BOOL bValue;
+
+#ifdef _WIN64
+        static const PATCH_PATTERN s_PatternsX64[] = {
+                { "FFF3 4883EC?? 33DB 391D???????? 7508 8B05????????", 0xa, 0x12 },
+                { "FFF3 4883EC?? 33DB 391D???????? 75?? 8B05????????", 0xa, 0x12 },
+        };
+#else
+        static const PATCH_PATTERN s_PatternsWin7X86[] = {
+                { "833D????????00 743E E8???????? A3????????", 0x2, 0xf },
+                { "833D????????00 74?? E8???????? A3????????", 0x2, 0xf },
+        };
+        static const PATCH_PATTERN s_PatternsWin81X86[] = {
+                { "8BFF 51 833D????????00 7507 A1????????", 0x5, 0xd },
+                { "8BFF 51 833D????????00 75?? A1????????", 0x5, 0xd },
+        };
+#endif
 
         switch ( pNotifyBuffer->dwNotificationStatus ) {
         case ERROR_SUCCESS:
@@ -56,6 +142,21 @@ static VOID CALLBACK ServiceNotifyCallback(PVOID pParameter)
                         log_gle(L"Failed to get wuauserv ServiceDll value!");
                         break;
                 }
+                fname = PathFindFileNameW(lpwstrFilename);
+                if ( !_wcsicmp(fname, L"wuaueng2.dll") ) {
+                        log_info(L"Detected simplix UpdatePack7R2 (%ls); CPU check is already patched by UpdatePack7R2, skipping.", fname);
+                        goto free_lpwstrFilename;
+                }
+                if ( !_wcsicmp(fname, L"WuaCpuFix64.dll") || !_wcsicmp(fname, L"WuaCpuFix.dll") ) {
+                        log_warning(L"Detected WuaCpuFix (%ls) in wuauserv ServiceDll; remove WuaCpuFix or restore ServiceDll before using wufuc.", fname);
+                        goto free_lpwstrFilename;
+                }
+                if ( !_wcsicmp(fname, L"wuaueng3.dll") ) {
+                        bIsBypassEsu = TRUE;
+                        bHasUpdatePack = HasSiblingFile(lpwstrFilename, L"wuaueng2.dll");
+                        log_info(L"Detected BypassESU WU ESU Patcher (%ls).", fname);
+                }
+
                 if ( !GetFileVersionInfoExAlloc(FILE_VER_GET_NEUTRAL, TRUE, lpwstrFilename, &lpData) ) {
                         log_gle(L"Failed to get file version information: lpwstrFilename=%ls", lpwstrFilename);
                         goto free_lpwstrFilename;
@@ -80,25 +181,18 @@ static VOID CALLBACK ServiceNotifyCallback(PVOID pParameter)
 #ifdef _WIN64
                 if ( (s_bWindowsSevenSP1 && vercmp(lpffi->dwProductVersionMS, lpffi->dwProductVersionLS, 7, 6, 7601, 23714) != -1)
                         || (s_bWindowsEightPointOne && vercmp(lpffi->dwProductVersionMS, lpffi->dwProductVersionLS, 7, 9, 9600, 18621) != -1) ) {
-                        // all x64
-                        pattern = "FFF3 4883EC?? 33DB 391D???????? 7508 8B05????????";
-                        off1 = 0xa;
-                        off2 = 0x12;
+                        patterns = s_PatternsX64;
+                        patternCount = _countof(s_PatternsX64);
                 } else goto free_lpData;
 #else
                 if ( s_bWindowsSevenSP1 && vercmp(lpffi->dwProductVersionMS, lpffi->dwProductVersionLS, 7, 6, 7601, 23714) != -1 ) {
-                        // windows 7 x86
-                        pattern = "833D????????00 743E E8???????? A3????????";
-                        off1 = 0x2;
-                        off2 = 0xf;
+                        patterns = s_PatternsWin7X86;
+                        patternCount = _countof(s_PatternsWin7X86);
                 } else if ( s_bWindowsEightPointOne && vercmp(lpffi->dwProductVersionMS, lpffi->dwProductVersionLS, 7, 9, 9600, 18621) != -1 ) {
-                        // windows 8.1 x86
-                        pattern = "8BFF 51 833D????????00 7507 A1????????";
-                        off1 = 0x5;
-                        off2 = 0xd;
+                        patterns = s_PatternsWin81X86;
+                        patternCount = _countof(s_PatternsWin81X86);
                 } else goto free_lpData;
 #endif
-                fname = PathFindFileNameW(lpwstrFilename);
                 log_info(L"Supported version of %ls: %hu.%hu.%hu.%hu",
                         fname,
                         HIWORD(lpffi->dwProductVersionMS), LOWORD(lpffi->dwProductVersionMS),
@@ -124,31 +218,35 @@ static VOID CALLBACK ServiceNotifyCallback(PVOID pParameter)
                         log_error(L"Failed to get target module information: hProcess=%p hModule=%p", hProcess, hModule);
                         goto resume_hProcess;
                 }
-                lpBuffer = malloc(modinfo.SizeOfImage);
-                if ( !lpBuffer ) {
-                        log_error(L"Failed to allocate memory for lpBuffer!");
-                        goto resume_hProcess;
-                }
-                if ( !ReadProcessMemory(hProcess, modinfo.lpBaseOfDll, lpBuffer, modinfo.SizeOfImage, &NumberOfBytesRead) ) {
+                if ( !ReadModuleImage(hProcess, modinfo.lpBaseOfDll, modinfo.SizeOfImage, &lpBuffer) ) {
                         log_gle(L"Failed to read target process memory: hProcess=%p lpBaseAddress=%p nSize=%lu",
                                 hProcess, modinfo.lpBaseOfDll, modinfo.SizeOfImage);
+                        goto resume_hProcess;
+                }
+                for ( size_t i = 0; i < patternCount; i++ ) {
+                        offset = patternfind(lpBuffer, modinfo.SizeOfImage, patterns[i].pattern);
+                        if ( offset != (size_t)-1 ) {
+                                matchedIndex = i;
+                                break;
+                        }
+                }
+                if ( matchedIndex == (size_t)-1 ) {
+                        if ( bIsBypassEsu && bHasUpdatePack )
+                                log_info(L"%ls appears to be derived from UpdatePack7R2 (wuaueng2.dll), which already patches CPU checks; skipping.", fname);
+                        else
+                                log_error(L"Failed to find IsDeviceServiceable pattern!");
                         goto free_lpBuffer;
                 }
-                offset = patternfind(lpBuffer, NumberOfBytesRead, pattern);
-                if ( offset == -1 ) {
-                        log_error(L"Failed to find IsDeviceServiceable pattern!");
-                        goto free_lpBuffer;
-                }
-                log_info(L"Found IsDeviceServiceable function offset: %ls+0x%Ix", fname, offset);
+                log_info(L"Found IsDeviceServiceable function offset: %ls+0x%Ix (pattern #%Iu)", fname, offset, matchedIndex);
 
-                lpAddress = ResolveAndTranslatePtr(lpBuffer, offset + off1, modinfo.lpBaseOfDll);
+                lpAddress = ResolveAndTranslatePtr(lpBuffer, offset + patterns[matchedIndex].off1, modinfo.lpBaseOfDll);
                 bValue = FALSE;
                 if ( WriteProcessMemory(hProcess, lpAddress, &bValue, sizeof bValue, NULL) )
                         log_info(L"Successfully wrote value to target process: lpAddress=%p", lpAddress);
                 else
                         log_gle(L"Failed to write value to target process: lpAddress=%p!", lpAddress);
 
-                lpAddress = ResolveAndTranslatePtr(lpBuffer, offset + off2, modinfo.lpBaseOfDll);
+                lpAddress = ResolveAndTranslatePtr(lpBuffer, offset + patterns[matchedIndex].off2, modinfo.lpBaseOfDll);
                 bValue = TRUE;
                 if ( WriteProcessMemory(hProcess, lpAddress, &bValue, sizeof bValue, NULL) )
                         log_info(L"Successfully wrote value to target process: lpAddress=%p", lpAddress);

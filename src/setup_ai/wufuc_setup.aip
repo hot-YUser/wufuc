@@ -361,8 +361,8 @@
     <ROW XmlElement="Settings_1" ParentElement="Task_1" Name="Settings" Condition="1" Order="3" Flags="14"/>
     <ROW XmlElement="StartWhenAvailable" ParentElement="Settings" Name="StartWhenAvailable" Condition="1" Order="4" Flags="14" Text="true"/>
     <ROW XmlElement="StartWhenAvailable_1" ParentElement="Settings_1" Name="StartWhenAvailable" Condition="1" Order="4" Flags="14" Text="true"/>
-    <ROW XmlElement="StopIfGoingOnBatteries" ParentElement="Settings" Name="StopIfGoingOnBatteries" Condition="1" Order="2" Flags="14" Text="true"/>
-    <ROW XmlElement="StopIfGoingOnBatteries_1" ParentElement="Settings_1" Name="StopIfGoingOnBatteries" Condition="1" Order="2" Flags="14" Text="true"/>
+    <ROW XmlElement="StopIfGoingOnBatteries" ParentElement="Settings" Name="StopIfGoingOnBatteries" Condition="1" Order="2" Flags="14" Text="false"/>
+    <ROW XmlElement="StopIfGoingOnBatteries_1" ParentElement="Settings_1" Name="StopIfGoingOnBatteries" Condition="1" Order="2" Flags="14" Text="false"/>
     <ROW XmlElement="StopOnIdleEnd" ParentElement="IdleSettings" Name="StopOnIdleEnd" Condition="1" Order="0" Flags="14" Text="true"/>
     <ROW XmlElement="StopOnIdleEnd_1" ParentElement="IdleSettings_1" Name="StopOnIdleEnd" Condition="1" Order="0" Flags="14" Text="true"/>
     <ROW XmlElement="Task" Name="Task" Condition="1" Order="0" Flags="30"/>

@@ -118,6 +118,28 @@ set "space= "
 
 if "%UNINSTALL%"=="1" goto :confirm_uninstall
 
+:: CHECK FOR OTHER PATCHERS (BypassESU / UpdatePack7R2 / WuaCpuFix) //////////
+set "wua_servicedll="
+for /f "skip=2 tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services\wuauserv\Parameters" /v ServiceDll 2^>nul') do set "wua_servicedll=%%B"
+
+if exist "%systemfolder%\wuaueng2.dll" (
+        echo.
+        echo WARNING - Detected simplix UpdatePack7R2 ^(%systemfolder%\wuaueng2.dll^).
+        echo UpdatePack7R2 already includes a built-in CPU check patch.
+        echo Installing wufuc alongside UpdatePack7R2 is unnecessary and not recommended.
+)
+echo "%wua_servicedll%" | findstr /I "WuaCpuFix" >nul && (
+        echo.
+        echo WARNING - Detected WuaCpuFix in wuauserv ServiceDll ^(%wua_servicedll%^).
+        echo Please uninstall WuaCpuFix or merge Restore_wuauserv.reg before using wufuc.
+)
+if exist "%systemroot%\WuEsu\PatchWU.cmd" (
+        echo.
+        echo INFO - Detected BypassESU WU ESU Patcher ^(%systemroot%\WuEsu\PatchWU.cmd^).
+        echo wufuc v1.0.1+ can coexist with BypassESU ^(wuaueng3.dll^).
+        echo Do NOT merge Restore_wuauserv.reg while BypassESU WU ESU Patcher is installed.
+)
+
 :: BEGIN INSTALL MODE /////////////////////////////////////////////////////////
 :confirm_install
 if "%UNATTENDED%"=="1" goto :install
