@@ -6,7 +6,7 @@
 > 
 > ### A little backstory
 > 
-> When I wrote the first iteration of wufuc (then known as [kb4012218-19](https://github.com/zeffy/wufuc/tree/old-kb4012218-19)) and published it on GitHub, I originally had intended for it to simply be a proof-of-concept that others could learn from. I had no way of anticipating that around April 18, 2017, several high-profile tech and gaming news websites would publish dozens of articles about my project, sending huge amounts of traffic to it.
+> When I wrote the first iteration of wufuc (then known as [kb4012218-19](https://github.com/hot-YUser/wufuc/tree/old-kb4012218-19)) and published it on GitHub, I originally had intended for it to simply be a proof-of-concept that others could learn from. I had no way of anticipating that around April 18, 2017, several high-profile tech and gaming news websites would publish dozens of articles about my project, sending huge amounts of traffic to it.
 > 
 > ### Many sleepless nights later
 > 
@@ -30,4 +30,4 @@
 
 ### Suggestions
 
-Know of a good donation platform? Let me know about it by [creating an issue](https://github.com/zeffy/wufuc/issues/new), and I will look into it.
+Know of a good donation platform? Let me know about it by [creating an issue](https://github.com/hot-YUser/wufuc/issues/new), and I will look into it.

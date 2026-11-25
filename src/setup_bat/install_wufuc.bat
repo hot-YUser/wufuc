@@ -69,7 +69,7 @@ if exist "%wufuc_dll_fullpath%" goto :xml_exists
 echo ERROR - Could not find %wufuc_dll_fullpath%!
 echo.
 echo This most likely means you tried to clone the repository.
-echo Please download wufuc from here: https://github.com/zeffy/wufuc/releases/latest
+echo Please download wufuc from here: https://github.com/hot-YUser/wufuc/releases/latest
 echo.
 echo If you are using an unstable AppVeyor build, it could also mean you
 echo downloaded the wrong build of wufuc for your operating system. If this

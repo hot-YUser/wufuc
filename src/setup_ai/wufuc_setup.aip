@@ -10,11 +10,11 @@
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="Enables Windows Update on PCs with unsupported processors." ValueLocId="*"/>
     <ROW Property="ARPCONTACT" Value="https://discord.gg/G8PD2Wa"/>
-    <ROW Property="ARPHELPLINK" Value="https://github.com/zeffy/wufuc/issues"/>
+    <ROW Property="ARPHELPLINK" Value="https://github.com/hot-YUser/wufuc/issues"/>
     <ROW Property="ARPNOMODIFY" MultiBuildValue="x64Build:1#x86Build:1"/>
     <ROW Property="ARPPRODUCTICON" Value="msiexec.exe" Type="8"/>
-    <ROW Property="ARPURLINFOABOUT" Value="https://github.com/zeffy/wufuc"/>
-    <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/zeffy/wufuc/releases/latest"/>
+    <ROW Property="ARPURLINFOABOUT" Value="https://github.com/hot-YUser/wufuc"/>
+    <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/hot-YUser/wufuc/releases/latest"/>
     <ROW Property="AiPreventAutoPin" Value="System.AppUserModel.ExcludeFromShowInNewInstall"/>
     <ROW Property="MSIFASTINSTALL" MultiBuildValue="x64Build:6#x86Build:6"/>
     <ROW Property="Manufacturer" Value="zeffy"/>
@@ -217,10 +217,10 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIniFileComponent">
     <ROW IniFile="ServiceDll" FileName="RESTOR~1.REG|Restore_wuauserv.reg" DirProperty="APPDIR" Section="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\wuauserv\Parameters" Key="&quot;ServiceDll&quot;" Value="hex(2):25,00,73,00,79,00,73,00,74,00,65,00,6d,00,72,00,6f,00,6f,\" Action="0" Component_="ProductInformation"/>
-    <ROW IniFile="URL" FileName="Donate.url" DirProperty="SHORTCUTDIR" Section="InternetShortcut" Key="URL" Value="https://github.com/zeffy/wufuc/blob/master/DONATE.md" Action="0" Component_="SHORTCUTDIR"/>
-    <ROW IniFile="URL_2" FileName="WUFUCO~1.URL|wufuc on GitHub.url" DirProperty="SHORTCUTDIR" Section="InternetShortcut" Key="URL" Value="https://github.com/zeffy/wufuc" Action="0" Component_="SHORTCUTDIR"/>
-    <ROW IniFile="URL_6" FileName="LATEST~1.URL|Latest release.url" DirProperty="HelpandSupport_Dir" Section="InternetShortcut" Key="URL" Value="https://github.com/zeffy/wufuc/releases/latest" Action="0" Component_="SHORTCUTDIR"/>
-    <ROW IniFile="URL_7" FileName="REPORT~1.URL|Report an issue.url" DirProperty="HelpandSupport_Dir" Section="InternetShortcut" Key="URL" Value="https://github.com/zeffy/wufuc/issues" Action="0" Component_="SHORTCUTDIR"/>
+    <ROW IniFile="URL" FileName="Donate.url" DirProperty="SHORTCUTDIR" Section="InternetShortcut" Key="URL" Value="https://github.com/hot-YUser/wufuc/blob/micro/DONATE.md" Action="0" Component_="SHORTCUTDIR"/>
+    <ROW IniFile="URL_2" FileName="WUFUCO~1.URL|wufuc on GitHub.url" DirProperty="SHORTCUTDIR" Section="InternetShortcut" Key="URL" Value="https://github.com/hot-YUser/wufuc" Action="0" Component_="SHORTCUTDIR"/>
+    <ROW IniFile="URL_6" FileName="LATEST~1.URL|Latest release.url" DirProperty="HelpandSupport_Dir" Section="InternetShortcut" Key="URL" Value="https://github.com/hot-YUser/wufuc/releases/latest" Action="0" Component_="SHORTCUTDIR"/>
+    <ROW IniFile="URL_7" FileName="REPORT~1.URL|Report an issue.url" DirProperty="HelpandSupport_Dir" Section="InternetShortcut" Key="URL" Value="https://github.com/hot-YUser/wufuc/issues" Action="0" Component_="SHORTCUTDIR"/>
     <ROW IniFile="WorkingDirectory" FileName="Donate.url" DirProperty="SHORTCUTDIR" Section="InternetShortcut" Key="WorkingDirectory" Value="[SHORTCUTDIR]" Action="0" Component_="SHORTCUTDIR"/>
     <ROW IniFile="WorkingDirectory_2" FileName="WUFUCO~1.URL|wufuc on GitHub.url" DirProperty="SHORTCUTDIR" Section="InternetShortcut" Key="WorkingDirectory" Value="[SHORTCUTDIR]" Action="0" Component_="SHORTCUTDIR"/>
     <ROW IniFile="WorkingDirectory_6" FileName="LATEST~1.URL|Latest release.url" DirProperty="HelpandSupport_Dir" Section="InternetShortcut" Key="WorkingDirectory" Value="[SHORTCUTDIR]" Action="0" Component_="SHORTCUTDIR"/>
@@ -317,8 +317,8 @@
     <ROW XmlElement="BootTrigger_1" ParentElement="Triggers_1" Name="BootTrigger" Condition="1" Order="0" Flags="14"/>
     <ROW XmlElement="Command" ParentElement="Exec" Name="Command" Condition="1" Order="0" Flags="14" Text="&quot;[SystemFolder]rundll32.exe&quot;"/>
     <ROW XmlElement="Command_1" ParentElement="Exec_1" Name="Command" Condition="1" Order="0" Flags="14" Text="&quot;[System64Folder]rundll32.exe&quot;"/>
-    <ROW XmlElement="Description" ParentElement="RegistrationInfo" Name="Description" Condition="1" Order="1" Flags="14" Text="Enables Windows Update on PCs with unsupported processors.  https://github.com/zeffy/wufuc"/>
-    <ROW XmlElement="Description_1" ParentElement="RegistrationInfo_1" Name="Description" Condition="1" Order="1" Flags="14" Text="Enables Windows Update on PCs with unsupported processors.  https://github.com/zeffy/wufuc"/>
+    <ROW XmlElement="Description" ParentElement="RegistrationInfo" Name="Description" Condition="1" Order="1" Flags="14" Text="Enables Windows Update on PCs with unsupported processors.  https://github.com/hot-YUser/wufuc"/>
+    <ROW XmlElement="Description_1" ParentElement="RegistrationInfo_1" Name="Description" Condition="1" Order="1" Flags="14" Text="Enables Windows Update on PCs with unsupported processors.  https://github.com/hot-YUser/wufuc"/>
     <ROW XmlElement="DisallowStartIfOnBatteries" ParentElement="Settings" Name="DisallowStartIfOnBatteries" Condition="1" Order="1" Flags="14" Text="false"/>
     <ROW XmlElement="DisallowStartIfOnBatteries_1" ParentElement="Settings_1" Name="DisallowStartIfOnBatteries" Condition="1" Order="1" Flags="14" Text="false"/>
     <ROW XmlElement="DisallowStartOnRemoteAppSession" ParentElement="Settings" Name="DisallowStartOnRemoteAppSession" Condition="1" Order="11" Flags="14" Text="false"/>
